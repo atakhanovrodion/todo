@@ -22,6 +22,6 @@ module.exports = {
         new htmlWebpackPlugin({
             template: "./src/index.html"
         })
-    ]
+    ],
     watch: true,
 }
