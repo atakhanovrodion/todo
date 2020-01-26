@@ -3,9 +3,11 @@
   "scripts": {
     "start": "electron .",
     "webpack-electron": "webpack --config ./configs/webpack.electron.config.js",
-    "webpack-renderer": "webpack --config ./configs/webpack.renderer.config.js"
+    "webpack-renderer": "webpack --config ./configs/webpack.renderer.config.js",
+    "dev-server": "node ./server/index.js"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "express": "^4.17.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
