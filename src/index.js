@@ -58,7 +58,7 @@ class App extends React.Component {
     }
     const store = this.state.store.slice();
     store[this.state.current].list.push(this.state.text);
-
+    this.setDataAxious();
     this.setState({
       store: store,
       text: ''
@@ -79,7 +79,12 @@ class App extends React.Component {
         day: i
       });
     }
-
+    let dbdata = this.getDataAxios();
+    dbdata.then(function(result) {
+      for (let i = 0; i < result.length; i++) {
+        store[result[i].day].list.push(result[i].text);
+      }
+    });
     this.setState({
       store: store,
       dd: getDate.getDate(),
@@ -93,10 +98,20 @@ class App extends React.Component {
       current: i
     });
   }
-  /*async getDataAxios() {
+  async getDataAxios() {
+    let tmp = [];
     const response = await axios.get('http://localhost:3002/');
-    console.log(response.data);
-  }*/
+    for (let i = 0; i < response.data.data.length; i++) {
+      tmp.push(response.data.data[i]);
+    }
+    return tmp;
+  }
+  async setDataAxious() {
+    await axios.post('http://localhost:3002/', {
+      day: this.state.current.toString(),
+      text: this.state.text
+    });
+  }
 }
 
 ReactDom.render(<App />, document.getElementById('app'));

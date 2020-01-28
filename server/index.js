@@ -4,13 +4,13 @@ const app = express();
 const port = 3002;
 
 const db = require('../db/db');
-
+const cors = require('cors');
 app.listen(port, () => {
   console.log('server on');
 });
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
+app.use(cors());
 app.get('/', (req, res, next) => {
   var sql = 'select * from user';
   var params = [];
@@ -28,11 +28,11 @@ app.get('/', (req, res, next) => {
 app.post('/', (req, res, next) => {
   console.log(req.body);
   var errors = [];
-  if (!req.body.name) {
-    errors.push('no name specified');
+  if (!req.body.day) {
+    errors.push('no day specified');
   }
-  if (!req.body.email) {
-    errors.push('no email specified');
+  if (!req.body.text) {
+    errors.push('no text specified');
   }
   if (errors.length) {
     res.status(400).json({ error: errors.join(' ') });
