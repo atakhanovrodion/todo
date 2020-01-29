@@ -1,5 +1,6 @@
 const path = require('path');
-
+const webpack = require('webpack');
+var nodeExternals = require('webpack-node-externals');
 module.exports = {
   mode: 'development',
   entry: './src/electron/index.js',
@@ -16,5 +17,7 @@ module.exports = {
       }
     ]
   },
-  target: 'electron-main'
+  target: 'electron-main',
+  externals: [nodeExternals()],
+  devtool: 'eval-source-map'
 };

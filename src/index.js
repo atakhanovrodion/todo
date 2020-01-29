@@ -3,6 +3,7 @@ import ReactDom from 'react-dom';
 import Calendar from './components/Calendar';
 import List from './components/List';
 import axios from 'axios';
+import { ipcRenderer } from 'electron';
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -58,7 +59,8 @@ class App extends React.Component {
     }
     const store = this.state.store.slice();
     store[this.state.current].list.push(this.state.text);
-    this.setDataAxious();
+
+    ipcRenderer.send('submitChanges', [this.state.current, this.state.text]);
     this.setState({
       store: store,
       text: ''
@@ -79,8 +81,8 @@ class App extends React.Component {
         day: i
       });
     }
-    let dbdata = this.getDataAxios();
-    dbdata.then(function(result) {
+    ipcRenderer.send('mainWindowLoaded');
+    ipcRenderer.on('resultSent', (evt, result) => {
       for (let i = 0; i < result.length; i++) {
         store[result[i].day].list.push(result[i].text);
       }
@@ -96,20 +98,6 @@ class App extends React.Component {
       dd: i,
       show: !this.state.show,
       current: i
-    });
-  }
-  async getDataAxios() {
-    let tmp = [];
-    const response = await axios.get('http://localhost:3002/');
-    for (let i = 0; i < response.data.data.length; i++) {
-      tmp.push(response.data.data[i]);
-    }
-    return tmp;
-  }
-  async setDataAxious() {
-    await axios.post('http://localhost:3002/', {
-      day: this.state.current.toString(),
-      text: this.state.text
     });
   }
 }
