@@ -1,13 +1,14 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, ipcRenderer } from 'electron';
 const path = require('path');
 const url = require('url');
-
+const os = require('os');
 let knex = require('knex')({
   client: 'sqlite3',
   connection: {
     filename: './db/db.sqlite'
   }
 });
+
 let mainWindow;
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -18,8 +19,9 @@ const createWindow = () => {
     }
   });
   mainWindow.loadFile('dist/index.html');
+
   ipcMain.on('mainWindowLoaded', function() {
-    let result = knex.select('day', 'text').from('user');
+    let result = knex.select('id', 'day', 'text').from('user');
 
     result.then(function(rows) {
       mainWindow.webContents.send('resultSent', rows);
@@ -35,7 +37,18 @@ const createWindow = () => {
       })
       //TODO ERROR HANDLER
       .then((res, err) => {
+        console.log(res);
+        mainWindow.webContents.send('lastId', [res, result[1]]);
         console.log('success');
+      });
+  });
+  ipcMain.on('deleteItem', (e, result) => {
+    knex('user')
+      .where({ id: result })
+      .del()
+      .then((res, err) => {
+        console.log(res);
+        mainWindow.webContents.send('itemDeleted', result);
       });
   });
 
@@ -44,4 +57,12 @@ const createWindow = () => {
   });
 };
 
-app.on('ready', createWindow);
+app.on('ready', async () => {
+  await BrowserWindow.addDevToolsExtension(
+    path.join(
+      os.homedir(),
+      '/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.4.0_0'
+    )
+  );
+  createWindow();
+});
