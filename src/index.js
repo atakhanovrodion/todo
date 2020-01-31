@@ -3,6 +3,7 @@ import ReactDom from 'react-dom';
 import Calendar from './components/Calendar';
 import List from './components/List';
 import axios from 'axios';
+import { ipcRenderer } from 'electron';
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -15,7 +16,6 @@ class App extends React.Component {
       ],
       current: 0,
       text: '',
-      days: 1,
       show: false,
       dd: 0,
       mm: 0
@@ -23,6 +23,7 @@ class App extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.showCalendar = this.showCalendar.bind(this);
+    this.deleteItem = this.deleteItem.bind(this);
   }
   render() {
     const items = this.state.store[this.state.current];
@@ -38,7 +39,7 @@ class App extends React.Component {
           show={this.state.show}
           value={this.state.current}
         />
-        <List items={items} />
+        <List deleteItem={this.deleteItem} items={items} />
         <form onSubmit={this.handleSubmit}>
           <input onChange={this.handleChange} value={this.state.text} />
           <button>add</button>
@@ -57,11 +58,17 @@ class App extends React.Component {
       return;
     }
     const store = this.state.store.slice();
-    store[this.state.current].list.push(this.state.text);
-    this.setDataAxious();
-    this.setState({
-      store: store,
-      text: ''
+
+    ipcRenderer.send('submitChanges', [this.state.current, this.state.text]);
+    console.log('componentdidmount');
+    ipcRenderer.once('lastId', (evt, result) => {
+      //result[0][0] <-- FIX
+      store[this.state.current].list.push({ id: result[0][0], text: result[1] });
+
+      this.setState({
+        store: store,
+        text: ''
+      });
     });
   }
   showCalendar(e) {
@@ -73,22 +80,22 @@ class App extends React.Component {
     const getDate = new Date();
     const store = this.state.store.slice();
     const list = store[0].list.slice();
-    for (let i = 0; i < 31; i++) {
+    for (let i = 1; i < 32; i++) {
       store.push({
         list: Array(),
         day: i
       });
     }
-    let dbdata = this.getDataAxios();
-    dbdata.then(function(result) {
+    ipcRenderer.send('mainWindowLoaded');
+    ipcRenderer.on('resultSent', (evt, result) => {
       for (let i = 0; i < result.length; i++) {
-        store[result[i].day].list.push(result[i].text);
+        store[result[i].day].list.push({ id: result[i].id, text: result[i].text });
       }
-    });
-    this.setState({
-      store: store,
-      dd: getDate.getDate(),
-      mm: getDate.getMonth() + 1
+      this.setState({
+        store: store,
+        dd: getDate.getDate(),
+        mm: getDate.getMonth() + 1
+      });
     });
   }
   dateUpdate(i) {
@@ -98,18 +105,22 @@ class App extends React.Component {
       current: i
     });
   }
-  async getDataAxios() {
-    let tmp = [];
-    const response = await axios.get('http://localhost:3002/');
-    for (let i = 0; i < response.data.data.length; i++) {
-      tmp.push(response.data.data[i]);
-    }
-    return tmp;
-  }
-  async setDataAxious() {
-    await axios.post('http://localhost:3002/', {
-      day: this.state.current.toString(),
-      text: this.state.text
+  deleteItem(i) {
+    let store = this.state.store.slice();
+
+    ipcRenderer.send('deleteItem', i);
+    ipcRenderer.on('itemDeleted', (evt, result) => {
+      for (let j = 0; j < store[this.state.current].list.length; j++) {
+        if (store[this.state.current].list[j].id == result) {
+          console.log(store[this.state.current].list);
+          store[this.state.current].list.splice(j, 1);
+          console.log(store[this.state.current].list);
+        }
+      }
+      //console.log(store[this.state.current].list);
+      this.setState({
+        store: store
+      });
     });
   }
 }
