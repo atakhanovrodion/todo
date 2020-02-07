@@ -21,7 +21,7 @@ const createWindow = () => {
   mainWindow.loadFile('dist/index.html');
 
   ipcMain.on('mainWindowLoaded', function() {
-    let result = knex.select('id', 'day', 'text').from('user');
+    let result = knex.select('id', 'month', 'day', 'text').from('user');
 
     result.then(function(rows) {
       mainWindow.webContents.send('resultSent', rows);
@@ -33,7 +33,8 @@ const createWindow = () => {
     knex('user')
       .insert({
         day: result[0],
-        text: result[1]
+        text: result[1],
+        month: result[2]
       })
       //TODO ERROR HANDLER
       .then((res, err) => {

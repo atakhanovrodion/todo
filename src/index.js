@@ -9,24 +9,34 @@ class App extends React.Component {
     super(props);
     this.state = {
       store: [
-        {
-          list: Array(),
-          day: 0
-        }
+        [
+          {
+            list: Array(),
+            id: 0
+          }
+        ]
       ],
       current: 0,
       text: '',
       show: false,
-      dd: 0,
-      mm: 0
+      dd: getDate.getDate(),
+      mm: getDate.getMonth() + 1,
+      yyyy: getDate.getFullYear()
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.showCalendar = this.showCalendar.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
+    this.prevClick = this.prevClick.bind(this);
+    this.nextClick = this.nextClick.bind(this);
   }
   render() {
-    const items = this.state.store[this.state.current];
+    //const items = this.state.store[this.state.mm][this.state.current].list;
+    const items = this.state.store;
+    console.log(items[2]);
+
+    //<List deleteItem={this.deleteItem} items={items} />
+
     return (
       <div>
         <button onClick={this.showCalendar}>
@@ -36,10 +46,13 @@ class App extends React.Component {
           onClick={i => this.dateUpdate(i)}
           dd={this.state.dd}
           mm={this.state.mm}
+          yyyy={this.state.yyyy}
           show={this.state.show}
           value={this.state.current}
+          nextClick={this.nextClick}
+          prevClick={this.prevClick}
         />
-        <List deleteItem={this.deleteItem} items={items} />
+
         <form onSubmit={this.handleSubmit}>
           <input onChange={this.handleChange} value={this.state.text} />
           <button>add</button>
@@ -60,9 +73,9 @@ class App extends React.Component {
     const store = this.state.store.slice();
 
     ipcRenderer.send('submitChanges', [this.state.current, this.state.text]);
-    console.log('componentdidmount');
     ipcRenderer.once('lastId', (evt, result) => {
       //result[0][0] <-- FIX
+      console.log(result);
       store[this.state.current].list.push({ id: result[0][0], text: result[1] });
 
       this.setState({
@@ -77,24 +90,25 @@ class App extends React.Component {
     });
   }
   componentDidMount() {
-    const getDate = new Date();
     const store = this.state.store.slice();
-    const list = store[0].list.slice();
-    for (let i = 1; i < 32; i++) {
-      store.push({
-        list: Array(),
-        day: i
-      });
+
+    for (let i = 0; i < 13; i++) {
+      store.push(Array());
+      for (let j = 0; j < 31; j++) {
+        store[i].push({
+          list: Array()
+        });
+      }
     }
     ipcRenderer.send('mainWindowLoaded');
     ipcRenderer.on('resultSent', (evt, result) => {
+      console.log(result);
+
       for (let i = 0; i < result.length; i++) {
-        store[result[i].day].list.push({ id: result[i].id, text: result[i].text });
+        store[result[i].month][result[i].day].list.push({ id: result[i].id, text: result[i].text });
       }
       this.setState({
-        store: store,
-        dd: getDate.getDate(),
-        mm: getDate.getMonth() + 1
+        store: store
       });
     });
   }
@@ -123,6 +137,25 @@ class App extends React.Component {
       });
     });
   }
+  prevClick(e) {
+    let month = this.state.mm;
+    if (month - 1 < 1) {
+      return;
+    }
+    this.setState({
+      mm: month - 1
+    });
+  }
+  nextClick(e) {
+    let month = this.state.mm;
+    if (month + 1 > 12) {
+      return;
+    }
+    this.setState({
+      mm: month + 1
+    });
+  }
 }
+const getDate = new Date();
 
 ReactDom.render(<App />, document.getElementById('app'));
