@@ -1,0 +1,4 @@
+todo
+node_modules/
+main/db/db.sqlite3
+main/scripts/

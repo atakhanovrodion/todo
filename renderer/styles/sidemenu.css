@@ -1,0 +1,20 @@
+.sideMenu {
+  grid-column: 1/2;
+  grid-row: 2/-1;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+input {
+  width: 100%;
+}
+.sideMenuButtonActive {
+  background-color: aquamarine;
+}
+.sideMenu button {
+  padding: 6px;
+}

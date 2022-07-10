@@ -1,0 +1,19 @@
+.task {
+  display: grid;
+
+  grid-template-rows: 25px 1fr;
+  grid-template-columns: 70% 1fr 1fr;
+  gap: 2px;
+}
+.taskButton {
+}
+.task:hover {
+  background-color: aqua;
+}
+.taskNote {
+  grid-column: 1/-1;
+  grid-row: 2/-1;
+}
+.taskContext {
+  position: absolute;
+}

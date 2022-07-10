@@ -1,0 +1,12 @@
+.timer {
+  grid-column: 6/7;
+  display: flex;
+}
+
+.timeClockForm {
+  width: 40px;
+  height: 30px;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+}
